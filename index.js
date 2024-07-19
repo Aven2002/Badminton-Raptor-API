@@ -1,17 +1,21 @@
 const express = require('express');
 const mysql = require('mysql');
-const app = express();
+const path = require('path');
 const cors = require('cors');
+const app = express();
 const port = 3000;
 
 app.use(cors()); 
+
+// Serve static files from the 'assets' directory
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // MySQL Connection
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'badminton_raptor_db'
+  database: 'badminton_store'
 });
 
 // Connect to MySQL
@@ -24,7 +28,7 @@ db.connect((err) => {
 
 // Get all equipment
 app.get('/api/equipment', (req, res) => {
-  const sql = 'SELECT * FROM product';
+  const sql = 'SELECT * FROM equipment';
   db.query(sql, (err, results) => {
     if (err) {
       throw err;
