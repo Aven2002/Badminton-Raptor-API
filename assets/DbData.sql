@@ -1,5 +1,5 @@
 /*Pre- defined Equipment*/
-USE Badminton_Store;
+USE badminton_store;
 
 /*Racquet - Shuttlecock - Bags*/
 INSERT INTO equipment (
