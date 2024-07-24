@@ -39,3 +39,14 @@ exports.deleteEquipment = (req, res) => {
     res.json({ message: 'Equipment deleted' });
   });
 };
+
+exports.getEquipmentDetails = (req, res) => {
+  const id = req.params.id;
+
+  equipmentService.getEquipmentDetails(id, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+};
