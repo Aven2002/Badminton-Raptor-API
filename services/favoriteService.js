@@ -1,9 +1,14 @@
 const db = require('../config/db');
 
 exports.getAllFavorite = (callback) => {
-  const sql = 'SELECT * FROM favorite';
+  const sql = `
+    SELECT f.favoriteID, f.userID, f.equipID, e.equipName, e.equipPrice, e.equipCategory, e.equipBrand, e.equipImgPath
+    FROM favorite f
+    JOIN equipment e ON f.equipID = e.equipID
+  `;
   db.query(sql, callback);
 };
+
 
 exports.createFavorite = (newItem, callback) => {
   const sql = 'INSERT INTO favorite SET ?';
