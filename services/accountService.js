@@ -5,9 +5,26 @@ exports.getAllAccount = (callback) => {
   db.query(sql, callback);
 };
 
-exports.createAccount = (newItem, callback) => {
-  const sql = 'INSERT INTO user_account SET ?';
-  db.query(sql, newItem, callback);
+exports.createAccount = (newUser, callback) => {
+  // Check if username already exists
+  const checkUsernameQuery = 'SELECT * FROM user_account WHERE username = ?';
+  db.query(checkUsernameQuery, [newUser.username], (err, results) => {
+    if (err) {
+      return callback(err);
+    }
+    if (results.length > 0) {
+      // Username already taken
+      return callback(new Error('Username has been taken'));
+    }
+    // Proceed with account creation
+    const createQuery = 'INSERT INTO user_account SET ?';
+    db.query(createQuery, newUser, (err, result) => {
+      if (err) {
+        return callback(err);
+      }
+      callback(null, result);
+    });
+  });
 };
 
 exports.updateAccount = (id, updatedItem, callback) => {
@@ -19,4 +36,3 @@ exports.deleteAccount = (id, callback) => {
   const sql = 'DELETE FROM user_account WHERE userID = ?';
   db.query(sql, id, callback);
 };
-

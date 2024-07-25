@@ -8,6 +8,7 @@ USE Badminton_Store;
 /*Create Tables*/
 /* User Account Table */
 CREATE TABLE user_account(
+    profileImg TEXT NOT NULL,
     userID INT NOT NULL AUTO_INCREMENT,
     fname VARCHAR(20) NOT NULL,
     lname VARCHAR(20) NOT NULL,

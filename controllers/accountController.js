@@ -11,6 +11,7 @@ exports.getAllAccount = (req, res) => {
 
 exports.createAccount = (req, res) => {
   const newUser = {
+    profileImg: req.body.profileImg ,
     fname: req.body.fname,
     lname: req.body.lname,
     email: req.body.email,
@@ -22,14 +23,20 @@ exports.createAccount = (req, res) => {
     contactNum: req.body.contactNum,
     dob: req.body.dob,
   };
+
   accountService.createAccount(newUser, (err, result) => {
     if (err) {
       console.error('Error creating account:', err);
-      return res.status(500).json({ error: err.message });
+
+      if (err.message === 'Username has been taken') {
+        return res.status(400).json({ message: 'Username has been taken. Please choose a new username.' });
+      }
+
+      return res.status(500).json({ error: 'An error occurred. Please try again later.' });
     }
+
     res.status(201).json({ id: result.insertId, ...newUser });
   });
-
 };
 
 exports.updateAccount = (req, res) => {
@@ -39,7 +46,7 @@ exports.updateAccount = (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.json({ message: 'Accountupdated', updatedItem });
+    res.json({ message: 'Account updated', updatedItem });
   });
 };
 
