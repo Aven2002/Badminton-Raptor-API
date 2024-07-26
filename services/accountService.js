@@ -5,6 +5,11 @@ exports.getAllAccount = (callback) => {
   db.query(sql, callback);
 };
 
+exports.getAccount = (id, callback) => {
+  const sql = 'SELECT * FROM user_account WHERE userID = ?';
+  db.query(sql, [id], callback);
+};
+
 exports.createAccount = (newUser, callback) => {
   // Check if username already exists
   const checkUsernameQuery = 'SELECT * FROM user_account WHERE username = ?';

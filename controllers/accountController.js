@@ -9,6 +9,17 @@ exports.getAllAccount = (req, res) => {
   });
 };
 
+exports.getAccount = (req, res) => {
+  const id = req.params.id;
+
+  accountService.getAccount(id, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+};
+
 exports.createAccount = (req, res) => {
   const newUser = {
     profileImg: req.body.profileImg ,

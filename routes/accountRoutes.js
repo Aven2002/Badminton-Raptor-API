@@ -2,16 +2,19 @@ const express = require('express');
 const router = express.Router();
 const accountController = require('../controllers/accountController');
 
-// Route to get all equipment
+// Route to get all account
 router.get('/', accountController.getAllAccount);
 
-// Route to create new equipment
+// Route to get one account
+router.get('/:id', accountController.getAccount);
+
+// Route to create account
 router.post('/', accountController.createAccount);
 
-// Route to update existing equipment
+// Route to update existing account
 router.put('/:id', accountController.updateAccount);
 
-// Route to delete equipment
+// Route to delete account
 router.delete('/:id', accountController.deleteAccount);
 
 module.exports = router;
