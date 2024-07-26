@@ -5,6 +5,11 @@ exports.getAllEquipment = (callback) => {
   db.query(sql, callback);
 };
 
+exports.getEquipmentByCategory = (category, callback) => {
+  const sql = 'SELECT * FROM equipment WHERE equipCategory = ?';
+  db.query(sql, [category], callback);
+};
+
 exports.createEquipment = (newItem, callback) => {
   const sql = 'INSERT INTO equipment SET ?';
   db.query(sql, newItem, callback);
