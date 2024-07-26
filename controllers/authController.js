@@ -1,32 +1,19 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const accountService = require('../services/accountService');
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ where: { email } });
+exports.login = (req, res) => {
+  const { identifier, password } = req.body;
+  accountService.getAllAccount((err, accounts) => {
+    if (err) {
+      return res.status(500).json({ error: 'An error occurred. Please try again later.' });
+    }
+    const user = accounts.find(user => user.username === identifier || user.email === identifier);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(400).json({ success: false, message: 'Incorrect username or password' });
     }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    if (user.password !== password) {
+      return res.status(400).json({ success: false, message: 'Incorrect username or password' });
     }
-    const token = jwt.sign({ userId: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-exports.register = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, password: hashedPassword });
-    res.status(201).json({ message: 'User created', user });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
+    // Successful login
+    return res.status(200).json({ success: true, message: 'Login successful' });
+  });
 };
