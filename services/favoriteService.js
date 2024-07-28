@@ -9,7 +9,6 @@ exports.getAllFavorite = (callback) => {
   db.query(sql, callback);
 };
 
-
 exports.createFavorite = (newItem, callback) => {
   const sql = 'INSERT INTO favorite SET ?';
   db.query(sql, newItem, callback);
@@ -23,4 +22,14 @@ exports.updateFavorite = (id, updatedItem, callback) => {
 exports.deleteFavorite = (id, callback) => {
   const sql = 'DELETE FROM favorite WHERE favoriteID = ?';
   db.query(sql, id, callback);
+};
+
+exports.checkFavorite = (userID, equipID, callback) => {
+  const query = 'SELECT COUNT(*) AS count FROM favorite WHERE userID = ? AND equipID = ?';
+  db.query(query, [userID, equipID], (error, results) => {
+    if (error) {
+      return callback(error, null);
+    }
+    callback(null, results[0].count > 0);
+  });
 };

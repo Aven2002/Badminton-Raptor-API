@@ -1,7 +1,7 @@
 const favoriteService = require('../services/favoriteService');
 
 exports.getAllFavorite = (req, res) => {
-    favoriteService.getAllFavorite((err, results) => {
+  favoriteService.getAllFavorite((err, results) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -37,5 +37,21 @@ exports.deleteFavorite = (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.json({ message: 'Favorite deleted' });
+  });
+};
+
+exports.checkFavorite = (req, res) => {
+  const { userID, equipID } = req.query;
+
+  if (!userID || !equipID) {
+    return res.status(400).json({ error: 'userID and equipID are required' });
+  }
+
+  favoriteService.checkFavorite(userID, equipID, (error, isFavorite) => {
+    if (error) {
+      console.error('Error checking favorite:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.status(200).json({ isFavorite });
   });
 };
