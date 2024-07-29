@@ -8,4 +8,6 @@ router.post('/', favoriteController.createFavorite);
 router.put('/:id', favoriteController.updateFavorite);
 router.delete('/:id', favoriteController.deleteFavorite);
 
+router.get('/:userID', favoriteController.getFavoritesByUserID);
+
 module.exports = router;

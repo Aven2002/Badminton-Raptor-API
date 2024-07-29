@@ -55,3 +55,11 @@ exports.checkFavorite = (req, res) => {
     res.status(200).json({ isFavorite });
   });
 };
+
+exports.getFavoritesByUserID = (req, res) => {
+  const userID = req.params.userID;
+  favoriteService.getFavoritesByUserID(userID, (error, results) => {
+    if (error) return res.status(500).json({ error: 'An error occurred' });
+    res.json(results);
+  });
+};

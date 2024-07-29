@@ -99,7 +99,8 @@ CREATE TABLE favorite(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(favoriteID),
     FOREIGN KEY (userID) REFERENCES user_account(userID),
-    FOREIGN KEY (equipID) REFERENCES equipment(equipID)
+    FOREIGN KEY (equipID) REFERENCES equipment(equipID),
+    CONSTRAINT unique_favorite UNIQUE (userID, equipID)
 );
 
 /*Feedback Table */

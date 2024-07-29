@@ -33,3 +33,13 @@ exports.checkFavorite = (userID, equipID, callback) => {
     callback(null, results[0].count > 0);
   });
 };
+
+exports.getFavoritesByUserID = (userID, callback) => {
+  const sql = `
+    SELECT f.favoriteID, f.userID, f.equipID, e.equipName, e.equipPrice, e.equipCategory, e.equipBrand, e.equipImgPath
+    FROM favorite f
+    JOIN equipment e ON f.equipID = e.equipID
+    WHERE f.userID = ?
+  `;
+  db.query(sql, userID, callback);
+};
