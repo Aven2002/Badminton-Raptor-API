@@ -20,7 +20,8 @@ router.put('/:id', equipmentController.updateEquipment);
 // Route to delete equipment
 router.delete('/:id', equipmentController.deleteEquipment);
 
-
+// Route to download equipment
+router.get('/:id/details/pdf', equipmentController.getEquipmentDetailsPDF);
 
 module.exports = router;
 
