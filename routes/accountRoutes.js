@@ -17,4 +17,7 @@ router.put('/:id', accountController.updateAccount);
 // Route to delete account
 router.delete('/:id', accountController.deleteAccount);
 
+// Route to get user role 
+router.get('/:id/role', accountController.getUserRole);
+
 module.exports = router;

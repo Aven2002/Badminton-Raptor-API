@@ -70,3 +70,21 @@ exports.deleteAccount = (req, res) => {
     res.json({ message: 'Account deleted' });
   });
 };
+
+// Method to get user role based on userID
+exports.getUserRole = (req, res) => {
+  const userId = req.params.id;
+
+  accountService.getUserRoleById(userId, (err, userRole) => {
+    if (err) {
+      console.error('Error fetching user role:', err); // Log the error for debugging
+      return res.status(500).json({ message: 'Server error', error: err.message });
+    }
+
+    if (userRole) {
+      res.status(200).json({ userRole }); 
+    } else {
+      res.status(404).json({ message: 'User role not found' });
+    }
+  });
+};

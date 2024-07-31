@@ -10,6 +10,7 @@ USE Badminton_Store;
 CREATE TABLE user_account(
     profileImg TEXT NOT NULL,
     userID INT NOT NULL AUTO_INCREMENT,
+    userRole VARCHAR(20) NOT NULL DEFAULT 'User',
     fname VARCHAR(20) NOT NULL,
     lname VARCHAR(20) NOT NULL,
     email VARCHAR(45) NOT NULL,

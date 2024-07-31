@@ -41,3 +41,24 @@ exports.deleteAccount = (id, callback) => {
   const sql = 'DELETE FROM user_account WHERE userID = ?';
   db.query(sql, id, callback);
 };
+
+
+/// Function to get user role by userID
+exports.getUserRoleById = (userID, callback) => {
+  const sql = 'SELECT userRole FROM user_account WHERE userID = ?';
+
+  // Perform the query
+  db.query(sql, [userID], (err, results) => {
+    if (err) {
+      return callback(err); // Pass any error to the callback
+    }
+
+    if (Array.isArray(results) && results.length > 0) {
+      // Return the userRole directly
+      callback(null, results[0].userRole);
+    } else {
+      // Handle case where no rows are found
+      callback(null, null);
+    }
+  });
+};
