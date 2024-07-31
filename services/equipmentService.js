@@ -5,60 +5,47 @@ exports.getAllEquipment = (callback) => {
   db.query(sql, callback);
 };
 
-exports.getEquipmentByCategory = (category, callback) => {
-  const sql = 'SELECT * FROM equipment WHERE equipCategory = ?';
-  db.query(sql, [category], callback);
-};
+exports.createEquipment = (equipment, details, detailTable, callback) => {
+  const { equipName, equipCategory, equipBrand, equipImgPath, equipPrice } = equipment;
 
-exports.createEquipment = (equipmentData, detailData, detailTable, callback) => {
-  const sqlInsertEquipment = `
-    INSERT INTO equipment (equipName, equipCategory, equipBrand, equipImgPath, equipPrice)
-    VALUES (?, ?, ?, ?, ?)`;
+  // Validate required fields
+  if (!equipName || !equipCategory || !equipBrand || !equipPrice) {
+    return callback(new Error('Missing required equipment fields'));
+  }
 
-  const equipmentValues = [
-    equipmentData.equipName,
-    equipmentData.equipCategory,
-    equipmentData.equipBrand,
-    equipmentData.equipImgPath,
-    equipmentData.equipPrice
-  ];
+  // SQL query to insert into `equipment` table
+  const sql = 'INSERT INTO equipment (equipName, equipCategory, equipBrand, equipImgPath, equipPrice) VALUES (?, ?, ?, ?, ?)';
+  const values = [equipName, equipCategory, equipBrand, equipImgPath || null, equipPrice];
 
-  db.beginTransaction((err) => {
-    if (err) return callback(err);
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error inserting equipment:', err); // Log error
+      return callback(err);
+    }
 
-    db.query(sqlInsertEquipment, equipmentValues, (err, result) => {
+    const equipID = result.insertId;
+
+    // Ensure `details` is an object and `detailTable` is a valid table name
+    if (typeof details !== 'object' || !detailTable) {
+      return callback(new Error('Invalid details or detail table'));
+    }
+
+    const detailValues = { equipID, ...details };
+
+    // SQL query to insert into detail table
+    const detailSql = `INSERT INTO ${detailTable} SET ?`;
+
+    db.query(detailSql, detailValues, (err, result) => {
       if (err) {
-        return db.rollback(() => {
-          callback(err);
-        });
+        console.error('Error inserting equipment details:', err); // Log error
+        return callback(err);
       }
 
-      const equipID = result.insertId;
-      const sqlInsertDetail = `
-        INSERT INTO ${detailTable} (equipID, ${Object.keys(detailData).join(', ')})
-        VALUES (?, ${Object.values(detailData).map(() => '?').join(', ')})`;
-
-      const detailValues = [equipID, ...Object.values(detailData)];
-
-      db.query(sqlInsertDetail, detailValues, (err, result) => {
-        if (err) {
-          return db.rollback(() => {
-            callback(err);
-          });
-        }
-
-        db.commit((err) => {
-          if (err) {
-            return db.rollback(() => {
-              callback(err);
-            });
-          }
-          callback(null, result);
-        });
-      });
+      callback(null, result);
     });
   });
 };
+
 
 exports.updateEquipment = (id, updatedItem, callback) => {
   const sql = 'UPDATE equipment SET ? WHERE equipID = ?';

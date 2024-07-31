@@ -26,19 +26,26 @@ exports.getEquipmentByCategory = (req, res) => {
   });
 };
 
-
 exports.createEquipment = (req, res) => {
-  const equipmentData = req.body.equipment;
-  const detailData = req.body.details;
-  const detailTable = req.body.detailTable;
+  console.log('Request body:', req.body);
+  console.log('Uploaded file:', req.file);
 
-  equipmentService.createEquipment(equipmentData, detailData, detailTable, (err, result) => {
+  const equipment = JSON.parse(req.body.equipment);
+  const details = JSON.parse(req.body.details);
+  const detailTable = req.body.detailTable;
+  const equipImgPath = req.file ? `${req.file.destination.split('\\').pop()}/${req.file.filename}` : ''; // Ensure path is correct
+
+  equipmentService.createEquipment({
+    ...equipment,
+    equipImgPath,
+  }, details, detailTable, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.status(201).json({ message: 'Equipment added successfully', result });
+    res.status(201).json({ message: 'Equipment created successfully' });
   });
 };
+
 
 exports.updateEquipment = (req, res) => {
   const id = req.params.id;
