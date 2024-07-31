@@ -99,8 +99,8 @@ CREATE TABLE favorite(
     equipID INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(favoriteID),
-    FOREIGN KEY (userID) REFERENCES user_account(userID),
-    FOREIGN KEY (equipID) REFERENCES equipment(equipID),
+    FOREIGN KEY (userID) REFERENCES user_account(userID)ON DELETE CASCADE,
+    FOREIGN KEY (equipID) REFERENCES equipment(equipID) ON DELETE CASCADE,
     CONSTRAINT unique_favorite UNIQUE (userID, equipID)
 );
 
