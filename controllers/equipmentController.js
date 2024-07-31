@@ -28,12 +28,15 @@ exports.getEquipmentByCategory = (req, res) => {
 
 
 exports.createEquipment = (req, res) => {
-  const newItem = req.body;
-  equipmentService.createEquipment(newItem, (err, result) => {
+  const equipmentData = req.body.equipment;
+  const detailData = req.body.details;
+  const detailTable = req.body.detailTable;
+
+  equipmentService.createEquipment(equipmentData, detailData, detailTable, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.status(201).json({ id: result.insertId, ...newItem });
+    res.status(201).json({ message: 'Equipment added successfully', result });
   });
 };
 

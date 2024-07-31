@@ -10,9 +10,54 @@ exports.getEquipmentByCategory = (category, callback) => {
   db.query(sql, [category], callback);
 };
 
-exports.createEquipment = (newItem, callback) => {
-  const sql = 'INSERT INTO equipment SET ?';
-  db.query(sql, newItem, callback);
+exports.createEquipment = (equipmentData, detailData, detailTable, callback) => {
+  const sqlInsertEquipment = `
+    INSERT INTO equipment (equipName, equipCategory, equipBrand, equipImgPath, equipPrice)
+    VALUES (?, ?, ?, ?, ?)`;
+
+  const equipmentValues = [
+    equipmentData.equipName,
+    equipmentData.equipCategory,
+    equipmentData.equipBrand,
+    equipmentData.equipImgPath,
+    equipmentData.equipPrice
+  ];
+
+  db.beginTransaction((err) => {
+    if (err) return callback(err);
+
+    db.query(sqlInsertEquipment, equipmentValues, (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          callback(err);
+        });
+      }
+
+      const equipID = result.insertId;
+      const sqlInsertDetail = `
+        INSERT INTO ${detailTable} (equipID, ${Object.keys(detailData).join(', ')})
+        VALUES (?, ${Object.values(detailData).map(() => '?').join(', ')})`;
+
+      const detailValues = [equipID, ...Object.values(detailData)];
+
+      db.query(sqlInsertDetail, detailValues, (err, result) => {
+        if (err) {
+          return db.rollback(() => {
+            callback(err);
+          });
+        }
+
+        db.commit((err) => {
+          if (err) {
+            return db.rollback(() => {
+              callback(err);
+            });
+          }
+          callback(null, result);
+        });
+      });
+    });
+  });
 };
 
 exports.updateEquipment = (id, updatedItem, callback) => {
