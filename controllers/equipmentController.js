@@ -49,14 +49,41 @@ exports.createEquipment = (req, res) => {
 
 exports.updateEquipment = (req, res) => {
   const id = req.params.id;
-  const updatedItem = req.body;
+  const updatedData = req.body;
+
+  let imgPath = '';
+  if (req.file) {
+    imgPath = req.file.filename;
+  }
+
+  const updatedItem = {
+    equipName: req.body.equipName,
+    equipCategory: req.body.equipCategory,
+    equipBrand: req.body.equipBrand,
+    equipImgPath: imgPath,
+    equipPrice: req.body.equipPrice
+  };
+
   equipmentService.updateEquipment(id, updatedItem, (err, result) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ message: 'Error updating equipment', error: err });
     }
-    res.json({ message: 'Equipment updated', updatedItem });
+
+    // Update details if applicable
+    const details = req.body.details;
+    if (details) {
+      equipmentService.updateEquipmentDetails(id, updatedItem.equipCategory, details, (err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Error updating equipment details', error: err });
+        }
+        res.status(200).json({ message: 'Equipment updated successfully', result });
+      });
+    } else {
+      res.status(200).json({ message: 'Equipment updated successfully', result });
+    }
   });
 };
+
 
 exports.deleteEquipment = (req, res) => {
   const id = req.params.id;

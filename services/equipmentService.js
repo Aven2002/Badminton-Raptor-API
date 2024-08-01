@@ -52,6 +52,77 @@ exports.updateEquipment = (id, updatedItem, callback) => {
   db.query(sql, [updatedItem, id], callback);
 };
 
+exports.updateEquipmentDetails = (id, category, details, callback) => {
+  let updateDetailsQuery;
+  let updateDetailsParams;
+
+  switch (category.toLowerCase()) {
+    case 'racquet':
+      updateDetailsQuery = `
+        UPDATE racquet
+        SET flex = ?, frame = ?, shaft = ?, joint = ?, length = ?, weight = ?, stringAdvice = ?, color = ?, madeIn = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [
+        details.flex,
+        details.frame,
+        details.shaft,
+        details.joint,
+        details.length,
+        details.weight,
+        details.stringAdvice,
+        details.color,
+        details.madeIn,
+        id
+      ];
+      break;
+    case 'shuttlecock':
+      updateDetailsQuery = `
+        UPDATE shuttlecock
+        SET quantityPerTube = ?, description = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [details.quantityPerTube, details.description, id];
+      break;
+    case 'bags':
+      updateDetailsQuery = `
+        UPDATE bags
+        SET color = ?, size = ?, description = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [details.color, details.size, details.description, id];
+      break;
+    case 'footwear':
+      updateDetailsQuery = `
+        UPDATE footwear
+        SET color = ?, upper = ?, midsole = ?, outsole = ?, description = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [details.color, details.upper, details.midsole, details.outsole, details.description, id];
+      break;
+    case 'apparel':
+      updateDetailsQuery = `
+        UPDATE apparel
+        SET color = ?, material = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [details.color, details.material, id];
+      break;
+    case 'accessories':
+      updateDetailsQuery = `
+        UPDATE accessories
+        SET description = ?
+        WHERE equipID = ?
+      `;
+      updateDetailsParams = [details.description, id];
+      break;
+    default:
+      return callback(new Error('Invalid equipment category'));
+  }
+
+  db.query(updateDetailsQuery, updateDetailsParams, callback);
+};
+
 exports.deleteEquipment = (id, callback) => {
   const sql = 'DELETE FROM equipment WHERE equipID = ?';
   db.query(sql, id, callback);

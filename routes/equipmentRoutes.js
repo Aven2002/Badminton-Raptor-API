@@ -19,7 +19,7 @@ module.exports = (upload) => {
   router.post('/', upload.single('equipImgPath'), equipmentController.createEquipment);
 
   // Route to update existing equipment
-  router.put('/:id', equipmentController.updateEquipment);
+  router.put('/:id', upload.single('equipImgPath'), equipmentController.updateEquipment);
 
   // Route to delete equipment
   router.delete('/:id', equipmentController.deleteEquipment);
