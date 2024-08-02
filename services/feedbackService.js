@@ -10,11 +10,6 @@ exports.createFeedback = (newItem, callback) => {
   db.query(sql, newItem, callback);
 };
 
-exports.updateFeedback = (id, updatedFeedback, callback) => {
-  const sql = 'UPDATE feedback SET ? WHERE feedbackID = ?';
-  db.query(sql, [updatedFeedback, id], callback);
-};
-
 exports.deleteFeedback = (id, callback) => {
   const sql = 'DELETE FROM feedback WHERE feedbackID = ?';
   db.query(sql, id, callback);

@@ -26,23 +26,6 @@ exports.createFeedback = (req, res) => {
   });
 };
 
-exports.updateFeedback = (req, res) => {
-  const id = req.params.id;
-  const updatedFeedback = {
-    feedbackCategory: req.body.feedbackCategory,
-    email: req.body.email,
-    contactNum: req.body.contactNum,
-    feedbackContent: req.body.feedbackContent
-  };
-  feedbackService.updateFeedback(id, updatedFeedback, (err, result) => {
-    if (err) {
-      console.error('Error updating feedback:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ message: 'Feedback updated', updatedFeedback });
-  });
-};
-
 exports.deleteFeedback = (req, res) => {
   const id = req.params.id;
   feedbackService.deleteFeedback(id, (err, result) => {
