@@ -10,6 +10,17 @@ exports.getAllFeedback = (req, res) => {
   });
 };
 
+exports.getFeedback = (req, res) => {
+  const id = req.params.id;
+  feedbackService.getFeedback(id, (err, results) => {
+    if (err) {
+      console.error('Error getting feedback:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+};
+
 exports.createFeedback = (req, res) => {
   const newFeedback = {
     feedbackCategory: req.body.feedbackCategory, // Use feedbackCategory as per your table

@@ -5,6 +5,11 @@ exports.getAllFeedback = (callback) => {
   db.query(sql, callback);
 };
 
+exports.getFeedback = (id, callback) => {
+  const sql = 'SELECT * FROM feedback WHERE feedbackID = ?';
+  db.query(sql, id, callback);
+};
+
 exports.createFeedback = (newItem, callback) => {
   const sql = 'INSERT INTO feedback SET ?';
   db.query(sql, newItem, callback);
