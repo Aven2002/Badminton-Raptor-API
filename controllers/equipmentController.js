@@ -12,20 +12,6 @@ exports.getAllEquipment = (req, res) => {
   });
 };
 
-exports.getEquipmentByCategory = (req, res) => {
-  const category = req.params.category; 
-  if (!category) {
-    return res.status(400).json({ error: 'Category is required' });
-  }
-
-  equipmentService.getEquipmentByCategory(category, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(result);
-  });
-};
-
 exports.createEquipment = (req, res) => {
   console.log('Request body:', req.body);
   console.log('Uploaded file:', req.file);

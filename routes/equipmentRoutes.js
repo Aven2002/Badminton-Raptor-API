@@ -12,9 +12,6 @@ module.exports = (upload) => {
   // Route to get detailed information for a specific equipment item
   router.get('/:id/details', equipmentController.getEquipmentDetails);
 
-  // Route to get equipment by category
-  router.get('/:category', equipmentController.getEquipmentByCategory);
-
    // Route to create new equipment
   router.post('/', upload.single('equipImgPath'), equipmentController.createEquipment);
 
