@@ -114,3 +114,22 @@ CREATE TABLE feedback(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (feedbackID)
 );
+
+/*Recommendation Table */
+CREATE TABLE recommendation(
+    recommendationID INT NOT NULL AUTO_INCREMENT,
+    userID INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (recommendationID),
+    FOREIGN KEY (userID) REFERENCES user_account(userID) ON DELETE CASCADE
+);
+
+/*Recommended Equipment Table */
+CREATE TABLE recommendation_equipment(
+    recommendationEquipID INT NOT NULL AUTO_INCREMENT,
+    recommendationID INT NOT NULL,
+    equipID INT NOT NULL,
+    PRIMARY KEY (recommendationEquipID),
+    FOREIGN KEY (recommendationID) REFERENCES recommendation(recommendationID) ON DELETE CASCADE,
+    FOREIGN KEY (equipID) REFERENCES equipment(equipID) ON DELETE CASCADE
+);
