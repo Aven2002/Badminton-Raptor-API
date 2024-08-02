@@ -46,10 +46,37 @@ exports.createEquipment = (equipment, details, detailTable, callback) => {
   });
 };
 
+exports.getEquipmentById = (id, callback) => {
+  const sql = 'SELECT * FROM equipment WHERE equipID = ?';
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, results[0]);
+  });
+};
 
 exports.updateEquipment = (id, updatedItem, callback) => {
-  const sql = 'UPDATE equipment SET ? WHERE equipID = ?';
-  db.query(sql, [updatedItem, id], callback);
+  const { equipName, equipCategory, equipBrand, equipPrice } = updatedItem;
+
+  // Construct the equipImgPath
+  const fileExtension = '.png'; // Assuming all images are PNG. Adjust if necessary.
+  const equipImgPath = `${equipCategory}/${equipName}${fileExtension}`;
+
+  const sql = `
+    UPDATE equipment
+    SET equipName = ?, equipCategory = ?, equipBrand = ?, equipImgPath = ?, equipPrice = ?
+    WHERE equipID = ?;
+  `;
+
+  const values = [equipName, equipCategory, equipBrand, equipImgPath, equipPrice, id];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, result);
+  });
 };
 
 exports.updateEquipmentDetails = (id, category, details, callback) => {

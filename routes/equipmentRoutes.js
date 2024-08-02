@@ -15,7 +15,7 @@ module.exports = (upload) => {
   // Route to get equipment by category
   router.get('/:category', equipmentController.getEquipmentByCategory);
 
-  // Route to create new equipment
+   // Route to create new equipment
   router.post('/', upload.single('equipImgPath'), equipmentController.createEquipment);
 
   // Route to update existing equipment

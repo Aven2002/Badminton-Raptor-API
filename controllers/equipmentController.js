@@ -46,31 +46,68 @@ exports.createEquipment = (req, res) => {
   });
 };
 
-
 exports.updateEquipment = (req, res) => {
   const id = req.params.id;
   const updatedData = req.body;
 
-  let imgPath = '';
+  let imgPath;
   if (req.file) {
     imgPath = req.file.filename;
+  } else {
+    imgPath = updatedData.equipImgPath; // Use existing image path if no new image is uploaded
   }
 
   const updatedItem = {
-    equipName: req.body.equipName,
-    equipCategory: req.body.equipCategory,
-    equipBrand: req.body.equipBrand,
+    equipName: updatedData.equipName,
+    equipCategory: updatedData.equipCategory,
+    equipBrand: updatedData.equipBrand,
     equipImgPath: imgPath,
-    equipPrice: req.body.equipPrice
+    equipPrice: updatedData.equipPrice
   };
 
+  // Fetch existing equipment to check if equipName has changed
+  equipmentService.getEquipmentById(id, (err, existingEquipment) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching existing equipment', error: err });
+    }
+
+    const oldImgName = existingEquipment.equipImgPath;
+    const newImgName = `${updatedItem.equipName}${path.extname(oldImgName)}`;
+
+    if (oldImgName && oldImgName !== newImgName) {
+      // Construct full paths
+      const oldPath = path.join(__dirname, '..', 'assets', updatedItem.equipCategory, oldImgName);
+      const newPath = path.join(__dirname, '..', 'assets', updatedItem.equipCategory, newImgName);
+
+      // Ensure old file exists before renaming
+      fs.access(oldPath, fs.constants.F_OK, (err) => {
+        if (err) {
+          return res.status(404).json({ message: 'Original image file not found', error: err });
+        }
+
+        // Rename the file on the file system
+        fs.rename(oldPath, newPath, (err) => {
+          if (err) {
+            return res.status(500).json({ message: 'Error renaming image file', error: err });
+          }
+
+          updatedItem.equipImgPath = newImgName;
+          updateEquipmentAndDetails(id, updatedItem, updatedData.details, res);
+        });
+      });
+    } else {
+      updateEquipmentAndDetails(id, updatedItem, updatedData.details, res);
+    }
+  });
+};
+
+function updateEquipmentAndDetails(id, updatedItem, detailsString, res) {
   equipmentService.updateEquipment(id, updatedItem, (err, result) => {
     if (err) {
       return res.status(500).json({ message: 'Error updating equipment', error: err });
     }
 
-    // Update details if applicable
-    const details = req.body.details;
+    const details = detailsString ? JSON.parse(detailsString) : null;
     if (details) {
       equipmentService.updateEquipmentDetails(id, updatedItem.equipCategory, details, (err) => {
         if (err) {
@@ -82,8 +119,27 @@ exports.updateEquipment = (req, res) => {
       res.status(200).json({ message: 'Equipment updated successfully', result });
     }
   });
-};
+}
 
+function updateEquipmentAndDetails(id, updatedItem, detailsString, res) {
+  equipmentService.updateEquipment(id, updatedItem, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error updating equipment', error: err });
+    }
+
+    const details = detailsString ? JSON.parse(detailsString) : null;
+    if (details) {
+      equipmentService.updateEquipmentDetails(id, updatedItem.equipCategory, details, (err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Error updating equipment details', error: err });
+        }
+        res.status(200).json({ message: 'Equipment updated successfully', result });
+      });
+    } else {
+      res.status(200).json({ message: 'Equipment updated successfully', result });
+    }
+  });
+}
 
 exports.deleteEquipment = (req, res) => {
   const id = req.params.id;

@@ -1,6 +1,4 @@
-// index.js
 const express = require('express');
-const bodyParser = require('body-parser');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
@@ -17,34 +15,40 @@ const port = 3000;
 // Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const category = req.body.equipCategory;
-    if (!category) {
-      return cb(new Error('Category is not specified'), null);
-    }
+    const category = req.body.equipCategory || 'default';
     const uploadPath = path.join(__dirname, 'assets', category);
     fs.mkdir(uploadPath, { recursive: true }, (err) => {
       if (err) {
+        console.error('Error creating directory:', err);
         return cb(err, null);
       }
+      console.log('Upload path:', uploadPath);
       cb(null, uploadPath);
     });
   },
   filename: (req, file, cb) => {
-    // Make sure equipName is defined
-    const equipName = JSON.parse(req.body.equipment).equipName || 'default_name';
+    let equipName = 'default_name';
+    const category = req.body.equipCategory || 'default'; // Use the category here if needed
+    
+    try {
+      // If req.body.equipment is a JSON string, parse it
+      equipName = req.body.equipment ? JSON.parse(req.body.equipment).equipName : 'default_name';
+    } catch (error) {
+      console.error('Error parsing req.body.equipment:', error);
+    }
+    
     const fileExtension = path.extname(file.originalname);
-    cb(null, `${equipName}${fileExtension}`);
+    const filename = `${equipName}${fileExtension}`;
+    console.log('Generated filename:', filename); // Log the generated filename
+    cb(null, filename);
   }
 });
-
 
 const upload = multer({ storage });
 
 // Middleware setup
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json()); // JSON body parser should be set before routes
 app.use(cors());
-app.use(express.json());
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // API routes
