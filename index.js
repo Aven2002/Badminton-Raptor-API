@@ -28,7 +28,6 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     let equipName = 'default_name';
-    const category = req.body.equipCategory || 'default'; // Use the category here if needed
     
     try {
       // If req.body.equipment is a JSON string, parse it

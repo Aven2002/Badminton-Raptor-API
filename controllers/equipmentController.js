@@ -76,7 +76,7 @@ exports.updateEquipment = (req, res) => {
 
     if (oldImgName && oldImgName !== newImgName) {
       // Construct full paths
-      const oldPath = path.join(__dirname, '..', 'assets', updatedItem.equipCategory, oldImgName);
+      const oldPath = path.join(__dirname, '..', 'assets', oldImgName);
       const newPath = path.join(__dirname, '..', 'assets', updatedItem.equipCategory, newImgName);
 
       // Ensure old file exists before renaming
