@@ -1,7 +1,7 @@
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
-const equipmentService = require('../services/equipmentService'); 
+const equipmentService = require('../routes/equipmentService'); 
 
 exports.getAllEquipment = (req, res) => {
   equipmentService.getAllEquipment((err, results) => {
@@ -29,6 +29,20 @@ exports.createEquipment = (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.status(201).json({ message: 'Equipment created successfully' });
+  });
+};
+
+exports.getEquipmentByCategory = (req, res) => {
+  const category = req.params.category; 
+  if (!category) {
+    return res.status(400).json({ error: 'Category is required' });
+  }
+
+  equipmentService.getEquipmentByCategory(category, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
   });
 };
 

@@ -56,6 +56,11 @@ exports.getEquipmentById = (id, callback) => {
   });
 };
 
+exports.getEquipmentByCategory = (category, callback) => {
+  const sql = 'SELECT * FROM equipment WHERE equipCategory = ?';
+  db.query(sql, [category], callback);
+};
+
 exports.updateEquipment = (id, updatedItem, callback) => {
   const { equipName, equipCategory, equipBrand, equipPrice } = updatedItem;
 
