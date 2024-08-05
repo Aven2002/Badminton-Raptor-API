@@ -1,9 +1,9 @@
 /* Check if the database exists */
-DROP DATABASE IF EXISTS Badminton_Store;
-CREATE DATABASE Badminton_Store;
+DROP DATABASE IF EXISTS Badminton_Raptor_Store;
+CREATE DATABASE Badminton_Raptor_Store;
 
 /*Use the database*/
-USE Badminton_Store;
+USE Badminton_Raptor_Store;
 
 /*Create Tables*/
 /* User Account Table */
