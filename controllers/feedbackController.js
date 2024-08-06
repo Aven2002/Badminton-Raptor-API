@@ -37,6 +37,17 @@ exports.createFeedback = (req, res) => {
   });
 };
 
+exports.changeFeedbackStatus = (req, res) => {
+  const id = req.params.id;
+  feedbackService.changeFeedbackStatus(id, (err, result) => {
+    if (err) {
+      console.error('Error updating feedback status:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'Feedback Updated : Read' });
+  });
+};
+
 exports.deleteFeedback = (req, res) => {
   const id = req.params.id;
   feedbackService.deleteFeedback(id, (err, result) => {

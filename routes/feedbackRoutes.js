@@ -11,6 +11,9 @@ router.get('/:id', feedbackController.getFeedback);
 //Route to create new feedback
 router.post('/', feedbackController.createFeedback);
 
+//Route to change feedback status
+router.put('/:id', feedbackController.changeFeedbackStatus);
+
 //Route to delete feedback
 router.delete('/:id', feedbackController.deleteFeedback);
 

@@ -111,6 +111,7 @@ CREATE TABLE feedback(
     email VARCHAR(45) NOT NULL,
     contactNum VARCHAR(15) NOT NULL,
     feedbackContent TEXT NOT NULL,
+    status TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (feedbackID)
 );
