@@ -10,7 +10,8 @@ exports.getAllRecommendation = (req, res) => {
 };
 
 exports.getRecommendation = (req, res) => {
-    recommendationService.getRecommendation((err, results) => {
+  const id = req.params.id;
+    recommendationService.getRecommendationById(id, (err, results) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -19,16 +20,29 @@ exports.getRecommendation = (req, res) => {
 };
 
 exports.createRecommendation = (req, res) => {
+  const newItem = {
+    userID: req.body.userID,
+    rating: req.body.rating,
+  };
+  const equipmentIds = req.body.equipmentIds;
 
+  recommendationService.createRecommendation(newItem, equipmentIds, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(201).json({ message: 'Recommendation created', recommendationID: result.insertId });
+  });
 };
+
 
 exports.deleteRecommendation = (req, res) => {
   const id = req.params.id;
-  recommendationService.deleteRecommendation(id, (err, result) => {
+  recommendationService.deleteRecommendationById(id, (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     res.json({ message: 'Recommendation deleted' });
   });
 };
+
 

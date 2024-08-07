@@ -120,6 +120,7 @@ CREATE TABLE feedback(
 CREATE TABLE recommendation(
     recommendationID INT NOT NULL AUTO_INCREMENT,
     userID INT NOT NULL,
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (recommendationID),
     FOREIGN KEY (userID) REFERENCES user_account(userID) ON DELETE CASCADE
