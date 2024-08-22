@@ -25,6 +25,26 @@ CREATE TABLE user_account(
     PRIMARY KEY (userID)
 );
 
+/* Security Question Table */
+CREATE TABLE security_questions (
+    id INT NOT NULL AUTO_INCREMENT,
+    question TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+/*Security Answers Table */
+CREATE TABLE user_security_answers (
+    id INT NOT NULL AUTO_INCREMENT,
+    userID INT NOT NULL,
+    questionID INT NOT NULL,
+    hashed_answer CHAR(64) NOT NULL, -- SHA-256 hash length (or adjust based on hashing algorithm)
+    FOREIGN KEY (userID) REFERENCES user_account(userID) ON DELETE CASCADE,
+    FOREIGN KEY (questionID) REFERENCES security_questions(id) ON DELETE CASCADE,
+    PRIMARY KEY (id),
+    UNIQUE KEY (userID, questionID) -- Ensures one answer per question per user
+);
+
+
 /*Equipment Table*/
 CREATE TABLE equipment(
     equipID INT NOT NULL AUTO_INCREMENT,
@@ -120,6 +140,7 @@ CREATE TABLE feedback(
 CREATE TABLE recommendation(
     recommendationID INT NOT NULL AUTO_INCREMENT,
     userID INT NOT NULL,
+    category VARCHAR(50) NOT NULL,
     rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (recommendationID),

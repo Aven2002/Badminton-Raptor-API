@@ -1,6 +1,20 @@
-/*Pre- defined Equipment*/
+
 USE Badminton_Raptor_Store;
 
+/*Pre- defined Questions*/
+INSERT INTO security_questions (question) VALUES 
+('What was the name of your first pet?'),
+('What is your mother\'s name?'),
+('What is your father\'s name?'),
+('What is your favorite music?'),
+('What is your favorite movie?'),
+('What is your favorite food?'),
+('What is your favorite sport?'),
+('What was the make and model of your first car?'),
+('What city were you born in?'),
+('What was your childhood nickname?')
+
+/*Pre- defined Equipment*/
 /*Racquet - Shuttlecock - Bags - Footwear - Apparel - Accessories*/
 INSERT INTO equipment (
     equipName, 
