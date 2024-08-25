@@ -7,9 +7,9 @@ const securityController = require('../controllers/securityController');
 router.get('/security-questions', securityController.getSecurityQuestions);
 
 // Route to verify security answers
-router.post('/security-answers/verify', securityController.verifySecurityAnswers);
+router.post('/verifySecurityAnswer', securityController.verifySecurityAnswer);
 
 // Define route to handle security answer creation
-router.put('/security-answers', securityController.addSecurityAnswer);
+router.put('/security-answer', securityController.addSecurityAnswer);
 
 module.exports = router;

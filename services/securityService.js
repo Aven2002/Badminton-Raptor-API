@@ -11,32 +11,28 @@ exports.getSecurityQuestions = (callback) => {
 
 // Create new security answer record
 exports.createUserSecurityAnswer = (newUserSecurityAnswer, callback) => {
-    const createQuery = 'INSERT INTO user_security_answers SET ?';
-    db.query(createQuery, newUserSecurityAnswer, (err, result) => {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, result);
-    });
-  };
+  const createQuery = 'INSERT INTO user_security_answers SET ?';
+  
+  // Execute the database query to insert the new security answer
+  db.query(createQuery, newUserSecurityAnswer, (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, result);
+  });
+};
 
-// Verify security answers
-exports.verifySecurityAnswers = (userID, answers, callback) => {
-  const answerPromises = answers.map((answer) => {
-    const hashedAnswer = crypto.createHash('sha256').update(answer.answer).digest('hex');
-    return new Promise((resolve, reject) => {
-      db.query(
-        'SELECT id FROM user_security_answers WHERE userID = ? AND questionID = ? AND hashed_answer = ?',
-        [userID, answer.questionID, hashedAnswer],
-        (err, results) => {
-          if (err) return reject(err);
-          resolve(results.length > 0);
-        }
-      );
+// Verify security answer
+exports.verifySecurityAnswer = async (userID, questionID, hashedAnswer) => {
+  return new Promise((resolve, reject) => {
+    const verifyQuery = 'SELECT id FROM user_security_answers WHERE userID = ? AND questionID = ? AND hashed_answer = ?';
+
+    // Execute the query to check if the hashed answer matches the one stored in the database
+    db.query(verifyQuery, [userID, questionID, hashedAnswer], (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(results.length > 0); // Return true if a match is found
     });
   });
-
-  Promise.all(answerPromises)
-    .then(results => callback(null, results.every(result => result)))
-    .catch(err => callback(err));
 };
