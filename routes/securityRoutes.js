@@ -19,6 +19,6 @@ router.put('/security-answer', securityController.addSecurityAnswer);
 router.get('/security-question/:questionID', securityController.getSecurityQuestionByID);
 
 // Route to update the user's password
-router.put('/updatePassword', securityController.updatePassword);
+router.post('/updatePassword', securityController.updatePassword);
 
 module.exports = router;
