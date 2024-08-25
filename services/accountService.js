@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const db = require('../config/db');
 
 exports.getAllAccount = (callback) => {
@@ -62,3 +63,55 @@ exports.getUserRoleById = (userID, callback) => {
     }
   });
 };
+
+// Find user by username
+exports.findUserByUsername = (username) => {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT userID FROM user_account WHERE username = ?', [username], (err, results) => {
+      if (err) return reject(err);
+      if (results.length > 0) {
+        resolve(results[0]); // Return the user with userID
+      } else {
+        resolve(null); // No user found
+      }
+    });
+  });
+};
+
+
+// Helper function to hash the password
+const hashPassword = (password) => {
+  const hash = crypto.createHash('sha256');
+  hash.update(password);
+  return hash.digest('hex');
+};
+
+// Function to verify the password
+exports.verifyPassword = async (identifier, password) => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT userID, password FROM user_account WHERE username = ? OR email = ?';
+
+    db.query(query, [identifier, identifier], (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+
+      if (results.length === 0) {
+        return resolve({ success: false, message: 'User not found.' });
+      }
+
+      const user = results[0];
+
+      // Hash the provided password
+      const hashedPassword = hashPassword(password);
+
+      // Compare the provided hashed password with the stored hashed password
+      if (hashedPassword === user.password) {
+        resolve({ success: true, userID: user.userID });
+      } else {
+        resolve({ success: false, message: 'Incorrect password.' });
+      }
+    });
+  });
+};
+

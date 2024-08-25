@@ -20,4 +20,10 @@ router.delete('/:id', accountController.deleteAccount);
 // Route to get user role 
 router.get('/:id/role', accountController.getUserRole);
 
+// Route to get userID by username
+router.get('/user/:username', accountController.getUserIDByUsername);
+
+// Route to verify password 
+router.post('/verifyPassword', accountController.verifyPassword);
+
 module.exports = router;

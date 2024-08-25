@@ -15,7 +15,7 @@ CREATE TABLE user_account(
     lname VARCHAR(20) NOT NULL,
     email VARCHAR(45) NOT NULL,
     username VARCHAR(30) NOT NULL UNIQUE,
-    password VARCHAR(30) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     gender VARCHAR(15) NOT NULL,
     age INT NOT NULL,
     race VARCHAR(15) NOT NULL,

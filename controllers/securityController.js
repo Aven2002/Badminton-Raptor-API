@@ -11,8 +11,48 @@ exports.getSecurityQuestions = (req, res) => {
   });
 };
 
+// Get a random security question for a specific user
+exports.getRandomSecurityQuestion = async (req, res) => {
+  const { userID } = req.params;
 
-// Verify security answer
+  if (!userID) {
+    return res.status(400).json({ message: 'UserID is required' });
+  }
+
+  try {
+    const randomQuestion = await securityService.getRandomSecurityQuestion(userID);
+    if (randomQuestion) {
+      res.status(200).json(randomQuestion);
+    } else {
+      res.status(404).json({ message: 'No security questions found for this user.' });
+    }
+  } catch (error) {
+    console.error('Error fetching random security question:', error);
+    res.status(500).json({ message: 'Error fetching security question' });
+  }
+};
+
+// Get a security question by questionID
+exports.getSecurityQuestionByID = async (req, res) => {
+  const { questionID } = req.params;
+
+  if (!questionID) {
+    return res.status(400).json({ message: 'QuestionID is required' });
+  }
+
+  try {
+    const question = await securityService.getSecurityQuestionByID(questionID);
+    if (question) {
+      res.status(200).json({ question });
+    } else {
+      res.status(404).json({ message: 'Question not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching security question:', error);
+    res.status(500).json({ message: 'Error fetching security question' });
+  }
+};
+
 exports.verifySecurityAnswer = async (req, res) => {
   const { userID, questionID, answer } = req.body;
 
@@ -21,12 +61,17 @@ exports.verifySecurityAnswer = async (req, res) => {
     return res.status(400).json({ message: 'UserID, questionID, and answer are required' });
   }
 
+  console.log('Received data:', { userID, questionID, answer });
+
   try {
     // Hash the provided answer
     const hashedAnswer = crypto.createHash('sha256').update(answer).digest('hex');
+    console.log('Hashed answer:', hashedAnswer);
 
     // Call the service to verify the hashed answer
     const isValid = await securityService.verifySecurityAnswer(userID, questionID, hashedAnswer);
+
+    console.log('Verification result:', isValid);
 
     if (isValid) {
       res.status(200).json({ verified: true });
@@ -38,6 +83,7 @@ exports.verifySecurityAnswer = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify security answer' });
   }
 };
+
 
 
 // Add security answer
@@ -73,5 +119,32 @@ exports.addSecurityAnswer = async (req, res) => {
   } catch (err) {
     console.error('Error creating security answer:', err);
     res.status(500).json({ message: 'Failed to create security answer' });
+  }
+};
+
+// Update New Password
+exports.updatePassword = async (req, res) => {
+  const { userID, newPassword } = req.body;
+
+  // Validate required fields
+  if (!userID || !newPassword) {
+    return res.status(400).json({ message: 'UserID and newPassword are required' });
+  }
+
+  try {
+    // Hash the new password
+    const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
+
+    // Call the service to update the password
+    const result = await securityService.updateUserPassword(userID, hashedPassword);
+
+    if (result) {
+      res.status(200).json({ message: 'Password updated successfully' });
+    } else {
+      res.status(400).json({ message: 'Failed to update password' });
+    }
+  } catch (err) {
+    console.error('Error updating password:', err);
+    res.status(500).json({ message: 'Failed to update password' });
   }
 };

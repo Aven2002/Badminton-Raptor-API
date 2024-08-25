@@ -48,7 +48,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Middleware setup
-app.use(express.json()); // JSON body parser should be set before routes
+app.use(express.json()); 
 app.use(cors());
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 

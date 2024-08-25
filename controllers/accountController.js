@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const accountService = require('../services/accountService');
 
 exports.getAllAccount = (req, res) => {
@@ -88,3 +89,46 @@ exports.getUserRole = (req, res) => {
     }
   });
 };
+
+// Get userID by username
+exports.getUserIDByUsername = async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(400).json({ message: 'Username is required' });
+  }
+
+  try {
+    const user = await accountService.findUserByUsername(username);
+    if (user) {
+      return res.status(200).json({ userID: user.userID });
+    } else {
+      return res.status(404).json({ message: 'Username does not exist' });
+    }
+  } catch (err) {
+    console.error('Error finding user by username:', err);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.verifyPassword = async (req, res) => {
+  const { identifier, password } = req.body;
+  
+  if (!identifier || !password) {
+    return res.status(400).json({ success: false, message: 'Identifier and password are required.' });
+  }
+
+  try {
+    const result = await accountService.verifyPassword(identifier, password);
+
+    if (result.success) {
+      res.status(200).json({ success: true, userID: result.userID });
+    } else {
+      res.status(401).json({ success: false, message: result.message });
+    }
+  } catch (error) {
+    console.error('Error in accountController:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while verifying the password.' });
+  }
+};
+
