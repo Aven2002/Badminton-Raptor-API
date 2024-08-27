@@ -8,7 +8,7 @@ USE Badminton_Raptor_Store;
 /*Create Tables*/
 /* User Account Table */
 CREATE TABLE user_account(
-    profileImg TEXT NOT NULL,
+    profileImg TEXT NOT NULL DEFAULT '@/assets/Profile_Img/Profile_Img_Default.png',
     userID INT NOT NULL AUTO_INCREMENT,
     userRole VARCHAR(20) NOT NULL DEFAULT 'User',
     fname VARCHAR(20) NOT NULL,

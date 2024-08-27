@@ -63,7 +63,6 @@ exports.verifySecurityAnswer = async (req, res) => {
   try {
     // Hash the provided answer
     const hashedAnswer = crypto.createHash('sha256').update(answer).digest('hex');
-    console.log('Hashed answer:', hashedAnswer);
 
     // Call the service to verify the hashed answer
     const isValid = await securityService.verifySecurityAnswer(userID, questionID, hashedAnswer);
