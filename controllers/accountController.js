@@ -21,21 +21,67 @@ exports.getAccount = (req, res) => {
   });
 };
 
+// Function to hash passwords
+function hashPassword(password) {
+  if (typeof password !== 'string') {
+    throw new TypeError('Password must be a string');
+  }
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// Function to hash security answers
+function hashAnswer(answer) {
+  if (typeof answer !== 'string') {
+    throw new TypeError('Answer must be a string');
+  }
+  return crypto.createHash('sha256').update(answer).digest('hex');
+}
+
 exports.createAccount = (req, res) => {
+  const {
+    profileImg, fname, lname, email, username,
+    password, gender, age, race, contactNum, dob, securityAnswers
+  } = req.body;
+
+  // Validate the password
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ message: 'Password is required and must be a string' });
+  }
+
+  // Hash the password
+  let hashedPassword;
+  try {
+    hashedPassword = hashPassword(password);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error hashing the password' });
+  }
+
+  // Handle security answers if provided
+  let hashedSecurityAnswers = [];
+  if (securityAnswers && Array.isArray(securityAnswers)) {
+    hashedSecurityAnswers = securityAnswers.map(answer => ({
+      questionID: answer.questionID,
+      hashed_answer: hashAnswer(answer.answer)
+    }));
+  }
+
+  // Create new user object
   const newUser = {
-    profileImg: req.body.profileImg ,
-    fname: req.body.fname,
-    lname: req.body.lname,
-    email: req.body.email,
-    username: req.body.username,
-    password: req.body.password,
-    gender: req.body.gender,
-    age: req.body.age,
-    race: req.body.race,
-    contactNum: req.body.contactNum,
-    dob: req.body.dob,
+    profileImg,
+    fname,
+    lname,
+    email,
+    username,
+    password: hashedPassword,
+    gender,
+    age,
+    race,
+    contactNum,
+    dob,
+    security_answers: JSON.stringify(hashedSecurityAnswers) // Store as JSON string
   };
 
+  // Call the service to create the account
   accountService.createAccount(newUser, (err, result) => {
     if (err) {
       console.error('Error creating account:', err);
@@ -50,6 +96,7 @@ exports.createAccount = (req, res) => {
     res.status(201).json({ id: result.insertId, ...newUser });
   });
 };
+
 
 exports.updateAccount = (req, res) => {
   const id = req.params.id;

@@ -9,7 +9,7 @@ router.get('/', accountController.getAllAccount);
 router.get('/:id', accountController.getAccount);
 
 // Route to create account
-router.post('/', accountController.createAccount);
+router.post('/createAccount', accountController.createAccount);
 
 // Route to update existing account
 router.put('/:id', accountController.updateAccount);

@@ -1,7 +1,6 @@
-const db = require('../config/db'); // Ensure this path is correct
+const db = require('../config/db'); 
 const crypto = require('crypto');
 
-// Retrieve all security questions
 exports.getSecurityQuestions = (callback) => {
   db.query('SELECT id, question FROM security_questions', (err, results) => {
     if (err) return callback(err);
@@ -9,34 +8,30 @@ exports.getSecurityQuestions = (callback) => {
   });
 };
 
-// Get a random security question for a user
 exports.getRandomSecurityQuestion = (userID) => {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT userID, questionID
-      FROM user_security_answers
+      SELECT userID, 
+             JSON_UNQUOTE(JSON_EXTRACT(security_answers, CONCAT('$[', FLOOR(RAND() * JSON_LENGTH(security_answers)), '].questionID'))) AS questionID
+      FROM user_account
       WHERE userID = ?
-      ORDER BY RAND()
       LIMIT 1;
     `;
-
     db.query(query, [userID], (err, results) => {
       if (err) {
         return reject(err);
       }
 
       if (results.length > 0) {
-        // Only return userID and questionID
-        const { userID, questionID } = results[0];
-        resolve({ userID, questionID });
+        const randomQuestion = results[0];
+        resolve(randomQuestion);
       } else {
-        resolve(null); // No questions found for this user
+        resolve(null); // No user found or no security questions
       }
     });
   });
 };
 
-// Get a security question by questionID
 exports.getSecurityQuestionByID = (questionID) => {
   return new Promise((resolve, reject) => {
     const query = 'SELECT question FROM security_questions WHERE id = ?';
@@ -55,29 +50,33 @@ exports.getSecurityQuestionByID = (questionID) => {
   });
 };
 
-// Create new security answer record
-exports.createUserSecurityAnswer = (newUserSecurityAnswer, callback) => {
-  const createQuery = 'INSERT INTO user_security_answers SET ?';
-  
-  // Execute the database query to insert the new security answer
-  db.query(createQuery, newUserSecurityAnswer, (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
-  });
-};
-
-exports.verifySecurityAnswer = async (userID, questionID, hashedAnswer) => {
+exports.verifySecurityAnswer = (userID, questionID, hashedAnswer) => {
   return new Promise((resolve, reject) => {
-    const verifyQuery = 'SELECT id FROM user_security_answers WHERE userID = ? AND questionID = ? AND hashed_answer = ?';
-
-    db.query(verifyQuery, [userID, questionID, hashedAnswer], (err, results) => {
+    // Query to get the security answers JSON for the user
+    const query = 'SELECT security_answers FROM user_account WHERE userID = ?';
+    
+    db.query(query, [userID], (err, results) => {
       if (err) {
         return reject(err);
       }
-      console.log('Query results:', results);
-      resolve(results.length > 0); // Return true if a match is found
+
+      if (results.length === 0) {
+        // No such user
+        return resolve(false);
+      }
+
+      // Parse the JSON containing security answers
+      const securityAnswers = JSON.parse(results[0].security_answers);
+
+      // Find the answer for the specific questionID
+      const answerEntry = securityAnswers.find(ans => ans.questionID === questionID);
+
+      // Check if the hashed answer matches
+      if (answerEntry && answerEntry.hashed_answer === hashedAnswer) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
     });
   });
 };

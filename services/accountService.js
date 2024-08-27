@@ -33,6 +33,7 @@ exports.createAccount = (newUser, callback) => {
   });
 };
 
+
 exports.updateAccount = (id, updatedItem, callback) => {
   const sql = 'UPDATE user_account SET ? WHERE userID = ?';
   db.query(sql, [updatedItem, id], callback);

@@ -22,26 +22,16 @@ CREATE TABLE user_account(
     contactNum VARCHAR(15) NOT NULL,
     dob DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    security_answers JSON NOT NULL, -- JSON column to store security questions and answers
     PRIMARY KEY (userID)
 );
+
 
 /* Security Question Table */
 CREATE TABLE security_questions (
     id INT NOT NULL AUTO_INCREMENT,
     question TEXT NOT NULL,
     PRIMARY KEY (id)
-);
-
-/*Security Answers Table */
-CREATE TABLE user_security_answers (
-    id INT NOT NULL AUTO_INCREMENT,
-    userID INT NOT NULL,
-    questionID INT NOT NULL,
-    hashed_answer CHAR(64) NOT NULL, -- SHA-256 hash length (or adjust based on hashing algorithm)
-    FOREIGN KEY (userID) REFERENCES user_account(userID) ON DELETE CASCADE,
-    FOREIGN KEY (questionID) REFERENCES security_questions(id) ON DELETE CASCADE,
-    PRIMARY KEY (id),
-    UNIQUE KEY (userID, questionID) -- Ensures one answer per question per user
 );
 
 
@@ -147,7 +137,6 @@ CREATE TABLE recommendations (
     final_scores JSON,  
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Timestamp when the recommendation was generated
     last_shown_at DATETIME DEFAULT NULL,  -- Timestamp when the recommendation was last shown to the user
-    
     PRIMARY KEY (recommendationID),  
     FOREIGN KEY (userID) REFERENCES user_account(userID)  
 );
