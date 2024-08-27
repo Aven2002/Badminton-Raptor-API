@@ -12,7 +12,7 @@ INSERT INTO security_questions (question) VALUES
 ('What is your favorite sport?'),
 ('What was the make and model of your first car?'),
 ('What city were you born in?'),
-('What was your childhood nickname?')
+('What was your childhood nickname?');
 
 /*Pre- defined Equipment*/
 /*Racquet - Shuttlecock - Bags - Footwear - Apparel - Accessories*/

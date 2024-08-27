@@ -136,23 +136,19 @@ CREATE TABLE feedback(
     PRIMARY KEY (feedbackID)
 );
 
-/*Recommendation Table */
-CREATE TABLE recommendation(
-    recommendationID INT NOT NULL AUTO_INCREMENT,
-    userID INT NOT NULL,
-    category VARCHAR(50) NOT NULL,
-    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (recommendationID),
-    FOREIGN KEY (userID) REFERENCES user_account(userID) ON DELETE CASCADE
+CREATE TABLE recommendations (
+    recommendationID INT AUTO_INCREMENT NOT NULL,  
+    userID INT NOT NULL, 
+    equipment_ids JSON, 
+    rating INT, 
+    category_scores JSON,  
+    price_scores JSON,  
+    feature_scores JSON,  
+    final_scores JSON,  
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Timestamp when the recommendation was generated
+    last_shown_at DATETIME DEFAULT NULL,  -- Timestamp when the recommendation was last shown to the user
+    
+    PRIMARY KEY (recommendationID),  
+    FOREIGN KEY (userID) REFERENCES user_account(userID)  
 );
 
-/*Recommended Equipment Table */
-CREATE TABLE recommendation_equipment(
-    recommendationEquipID INT NOT NULL AUTO_INCREMENT,
-    recommendationID INT NOT NULL,
-    equipID INT NOT NULL,
-    PRIMARY KEY (recommendationEquipID),
-    FOREIGN KEY (recommendationID) REFERENCES recommendation(recommendationID) ON DELETE CASCADE,
-    FOREIGN KEY (equipID) REFERENCES equipment(equipID) ON DELETE CASCADE
-);
