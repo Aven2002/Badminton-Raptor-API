@@ -19,22 +19,6 @@ exports.getRecommendation = (req, res) => {
   });
 };
 
-exports.createRecommendation = (req, res) => {
-  const newItem = {
-    userID: req.body.userID,
-    rating: req.body.rating,
-  };
-  const equipmentIds = req.body.equipmentIds;
-
-  recommendationService.createRecommendation(newItem, equipmentIds, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.status(201).json({ message: 'Recommendation created', recommendationID: result.insertId });
-  });
-};
-
-
 exports.deleteRecommendation = (req, res) => {
   const id = req.params.id;
   recommendationService.deleteRecommendationById(id, (err, result) => {

@@ -8,9 +8,6 @@ router.get('/', recommendationController.getAllRecommendation);
 // Route to get one recommendation
 router.get('/:id', recommendationController.getRecommendation);
 
-// Route to create recommendation
-router.post('/', recommendationController.createRecommendation);
-
 // Route to delete recommendation
 router.delete('/:id', recommendationController.deleteRecommendation);
 
