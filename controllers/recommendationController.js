@@ -9,6 +9,7 @@ exports.getAllRecommendation = (req, res) => {
   });
 };
 
+
 exports.getRecommendation = (req, res) => {
   const id = req.params.id;
     recommendationService.getRecommendationById(id, (err, results) => {
@@ -18,6 +19,7 @@ exports.getRecommendation = (req, res) => {
     res.json(results);
   });
 };
+
 
 exports.deleteRecommendation = (req, res) => {
   const id = req.params.id;
@@ -42,4 +44,20 @@ exports.generateRecommendations = async (req, res) => {
   }
 };
 
+
+exports.updateRating = async (req, res) => {
+  const { userID, recommendationID, rating } = req.body;
+
+  try {
+    const result = await recommendationService.updateRating(userID, recommendationID, rating);
+
+    // Respond with a success message and relevant information
+    res.status(200).json({
+      message: 'Rating updated successfully.',
+      affectedRows: result.affectedRows, 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 

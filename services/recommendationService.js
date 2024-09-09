@@ -17,6 +17,39 @@ exports.deleteRecommendationById = (id, callback) => {
   db.query(sql, [id], callback);
 };
 
+
+exports.updateRating = async (userID, recommendationID, rating) => {
+  try {
+    // Validate input parameters
+    if (!userID || !recommendationID || !rating) {
+      throw new Error('Missing required parameters: userID, recommendationID, or rating.');
+    }
+
+    // Check if userID, recommendationID, and rating are valid numbers
+    if (isNaN(userID) || isNaN(recommendationID) || isNaN(rating)) {
+      throw new Error('Invalid input: userID, recommendationID, and rating must be valid numbers.');
+    }
+
+    // Update the rating for the given userID and recommendationID
+    const query = `
+      UPDATE recommendations 
+      SET rating = ? 
+      WHERE userID = ? AND recommendationID = ?
+    `;
+    const result = await db.query(query, [rating, userID, recommendationID]);
+
+    // Check if the recommendation was found and updated
+    if (result.affectedRows === 0) {
+      throw new Error('No matching recommendation found for the provided userID and recommendationID.');
+    }
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 exports.generateRecommendations = async (userID) => {
   if (!userID) {
     return res.status(400).json({ error: 'UserID is required' });
@@ -62,8 +95,8 @@ exports.generateRecommendations = async (userID) => {
   }
 };
 
-// Helper functions
 
+// Helper functions
 const calculateMedian = (prices) => {
   if (prices.length === 0) return 0;
 

@@ -14,4 +14,7 @@ router.delete('/:id', recommendationController.deleteRecommendation);
 //Route to generate recommendation
 router.post('/generateRecommendation', recommendationController.generateRecommendations);
 
+// Route to update rating
+router.put('/updateRating', recommendationController.updateRating);
+
 module.exports = router;
