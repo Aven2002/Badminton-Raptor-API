@@ -52,7 +52,7 @@ exports.updateRating = async (userID, recommendationID, rating) => {
 
 exports.generateRecommendations = async (userID) => {
   if (!userID) {
-    return res.status(400).json({ error: 'UserID is required' });
+    return { status: 400, json: { error: 'UserID is required' } };
   }
   try {
     // Step 1: Extract User Preferences with Equip Price, Category, and Brand
@@ -71,8 +71,8 @@ exports.generateRecommendations = async (userID) => {
     if (userFavoritesResult.length === 0) {
       // If no favorites, directly fetch 30 random items
       const recommendations = await getRandomEquipment(30);
-      await insertOrUpdateRecommendations(userID, recommendations, {}, {min: 0, max: 0}, {});
-      return recommendations;
+      const recommendationID = await insertOrUpdateRecommendations(userID, recommendations, {}, {min: 0, max: 0}, {});
+      return { recommendations, recommendationID };
     }
 
     // Step 2: Calculate Scores
@@ -86,14 +86,15 @@ exports.generateRecommendations = async (userID) => {
     const recommendations = await getTopRecommendations(categoryScores, brandScores, priceRange, recencyScores);
 
     // Step 4: Insert or Update Recommendations
-    await insertOrUpdateRecommendations(userID, recommendations, categoryScores, priceRange, brandScores);
+    const recommendationID = await insertOrUpdateRecommendations(userID, recommendations, categoryScores, priceRange, brandScores);
 
-    return recommendations;
+    return { recommendations, recommendationID };
   } catch (error) {
     console.error(error);
     throw new Error('Internal Server Error.');
   }
 };
+
 
 
 // Helper functions
@@ -198,6 +199,9 @@ const calculatePriceScore = (price, priceRange) => {
 
 const insertOrUpdateRecommendations = async (userID, recommendations, categoryScores, priceRange, brandScores) => {
   const recommendationIDs = recommendations.map(equip => equip.equipID);
+  const newFinalScores = recommendations.reduce((acc, item) => ({ ...acc, [item.equipID]: item.finalScore }), {});
+
+  // Fetch existing recommendations
   const existingRecommendationsResult = await new Promise((resolve, reject) => {
     db.query('SELECT * FROM recommendations WHERE userID = ?', [userID], (error, results) => {
       if (error) return reject(error);
@@ -206,19 +210,24 @@ const insertOrUpdateRecommendations = async (userID, recommendations, categorySc
   });
 
   const existingRecommendations = existingRecommendationsResult;
-
   const currentTimestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-
+  
   if (existingRecommendations.length > 0) {
+    // Update existing recommendation
     await new Promise((resolve, reject) => {
       db.query('UPDATE recommendations SET last_shown_at = ?, category_scores = ?, price_scores = ?, feature_scores = ?, final_scores = ? WHERE userID = ?', 
-        [currentTimestamp, JSON.stringify(categoryScores), JSON.stringify(priceRange), JSON.stringify(brandScores), JSON.stringify(recommendations.reduce((acc, item) => ({ ...acc, [item.equipID]: item.finalScore }), {})), userID], 
+        [currentTimestamp, JSON.stringify(categoryScores), JSON.stringify(priceRange), JSON.stringify(brandScores), JSON.stringify(newFinalScores), userID], 
         (error, results) => {
           if (error) return reject(error);
           resolve(results);
         });
     });
+    
+    // Return the existing recommendationID
+    const updatedRecommendation = existingRecommendations[0]; // Assuming you want the first match
+    return updatedRecommendation.recommendationID;
   } else {
+    // Insert new recommendation
     const newRecommendation = {
       userID,
       equipment_ids: JSON.stringify(recommendationIDs),
@@ -226,14 +235,18 @@ const insertOrUpdateRecommendations = async (userID, recommendations, categorySc
       category_scores: JSON.stringify(categoryScores),
       price_scores: JSON.stringify(priceRange),
       feature_scores: JSON.stringify(brandScores),
-      final_scores: JSON.stringify(recommendations.reduce((acc, item) => ({ ...acc, [item.equipID]: item.finalScore }), {}))
+      final_scores: JSON.stringify(newFinalScores)
     };
-    await new Promise((resolve, reject) => {
+    
+    const insertResult = await new Promise((resolve, reject) => {
       db.query('INSERT INTO recommendations SET ?', [newRecommendation], (error, results) => {
         if (error) return reject(error);
         resolve(results);
       });
     });
+    
+    // Return the newly inserted recommendationID
+    return insertResult.insertId;
   }
 };
 
@@ -245,9 +258,6 @@ const getRandomEquipment = async (limit) => {
       resolve(results);
     });
   });
-
-  // Debugging: Check the structure of the fetched random equipment items
-  console.log('Random Equipment Result:', randomEquipmentResult);
 
   return randomEquipmentResult;
 };
