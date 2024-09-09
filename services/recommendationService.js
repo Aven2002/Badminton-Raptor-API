@@ -83,10 +83,10 @@ exports.generateRecommendations = async (userID) => {
     const priceRange = calculateDynamicPriceRange(medianPrice);
 
     // Step 3: Get Top Recommendations
-    const recommendations = await getTopRecommendations(categoryScores, brandScores, priceRange, recencyScores);
+    const { topRecommendations, recommendations } = await getTopRecommendations(categoryScores, brandScores, priceRange, recencyScores);
 
     // Step 4: Insert or Update Recommendations
-    const recommendationID = await insertOrUpdateRecommendations(userID, recommendations, categoryScores, priceRange, brandScores);
+    const recommendationID = await insertOrUpdateRecommendations(userID, topRecommendations, categoryScores, priceRange, brandScores);
 
     return { recommendations, recommendationID };
   } catch (error) {
@@ -94,7 +94,6 @@ exports.generateRecommendations = async (userID) => {
     throw new Error('Internal Server Error.');
   }
 };
-
 
 
 // Helper functions
@@ -155,6 +154,7 @@ const calculateScores = (userFavorites) => {
 };
 
 const getTopRecommendations = async (categoryScores, brandScores, priceRange, recencyScores) => {
+  // Step 1: Get equipment items based on price range
   const query = `SELECT * FROM equipment WHERE equipPrice BETWEEN ? AND ?`;
   const equipmentItemsResult = await new Promise((resolve, reject) => {
     db.query(query, [priceRange.min, priceRange.max], (error, results) => {
@@ -165,6 +165,7 @@ const getTopRecommendations = async (categoryScores, brandScores, priceRange, re
 
   const equipmentItems = equipmentItemsResult;
 
+  // Step 2: Calculate weighted recommendations
   const weightedRecommendations = equipmentItems.map(equip => {
     const priceScore = calculatePriceScore(equip.equipPrice, priceRange);
     const categoryScore = categoryScores[equip.equipCategory] || 0;
@@ -175,18 +176,23 @@ const getTopRecommendations = async (categoryScores, brandScores, priceRange, re
     return { ...equip, finalScore };
   });
 
+  // Step 3: Sort and select top recommendations
   weightedRecommendations.sort((a, b) => b.finalScore - a.finalScore);
-  let topRecommendations = weightedRecommendations.slice(0, 30);
+  const topRecommendations = weightedRecommendations.slice(0, 30);
+
+  // Step 4: Prepare the recommendations list
+  let recommendations = [...topRecommendations];
 
   // If fewer than 30 items are available, fetch additional random items
   if (topRecommendations.length < 30) {
     const additionalItemsNeeded = 30 - topRecommendations.length;
     const randomEquipment = await getRandomEquipment(additionalItemsNeeded);
-    topRecommendations = [...topRecommendations, ...randomEquipment];
+    recommendations = [...topRecommendations, ...randomEquipment];
   }
 
-  return topRecommendations;
+  return { topRecommendations, recommendations };
 };
+
 
 const calculatePriceScore = (price, priceRange) => {
   if (price < priceRange.min || price > priceRange.max) {
@@ -198,7 +204,7 @@ const calculatePriceScore = (price, priceRange) => {
 };
 
 const insertOrUpdateRecommendations = async (userID, recommendations, categoryScores, priceRange, brandScores) => {
-  const recommendationIDs = recommendations.map(equip => equip.equipID);
+  const recommendationIDs = recommendations.map(equip => equip.equipID).sort();
   const newFinalScores = recommendations.reduce((acc, item) => ({ ...acc, [item.equipID]: item.finalScore }), {});
 
   // Fetch existing recommendations
@@ -211,23 +217,51 @@ const insertOrUpdateRecommendations = async (userID, recommendations, categorySc
 
   const existingRecommendations = existingRecommendationsResult;
   const currentTimestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-  
+
   if (existingRecommendations.length > 0) {
-    // Update existing recommendation
-    await new Promise((resolve, reject) => {
-      db.query('UPDATE recommendations SET last_shown_at = ?, category_scores = ?, price_scores = ?, feature_scores = ?, final_scores = ? WHERE userID = ?', 
-        [currentTimestamp, JSON.stringify(categoryScores), JSON.stringify(priceRange), JSON.stringify(brandScores), JSON.stringify(newFinalScores), userID], 
-        (error, results) => {
+    const existingRecommendation = existingRecommendations[0]; // Assuming only one recommendation per user
+    const existingEquipmentIDs = JSON.parse(existingRecommendation.equipment_ids).sort();
+    
+    // Compare existing equipment IDs with new ones
+    const equipmentIDsMatch = JSON.stringify(existingEquipmentIDs) === JSON.stringify(recommendationIDs);
+
+    if (equipmentIDsMatch) {
+      // Equipment IDs match, update the last_shown_at timestamp
+      await new Promise((resolve, reject) => {
+        db.query('UPDATE recommendations SET last_shown_at = ? WHERE userID = ?', 
+          [currentTimestamp, userID], 
+          (error, results) => {
+            if (error) return reject(error);
+            resolve(results);
+          });
+      });
+      
+      // Return the existing recommendationID
+      return existingRecommendation.recommendationID;
+    } else {
+      // Equipment IDs do not match, insert a new recommendation
+      const newRecommendation = {
+        userID,
+        equipment_ids: JSON.stringify(recommendationIDs),
+        rating: 0,
+        category_scores: JSON.stringify(categoryScores),
+        price_scores: JSON.stringify(priceRange),
+        feature_scores: JSON.stringify(brandScores),
+        final_scores: JSON.stringify(newFinalScores)
+      };
+      
+      const insertResult = await new Promise((resolve, reject) => {
+        db.query('INSERT INTO recommendations SET ?', [newRecommendation], (error, results) => {
           if (error) return reject(error);
           resolve(results);
         });
-    });
-    
-    // Return the existing recommendationID
-    const updatedRecommendation = existingRecommendations[0]; // Assuming you want the first match
-    return updatedRecommendation.recommendationID;
+      });
+      
+      // Return the newly inserted recommendationID
+      return insertResult.insertId;
+    }
   } else {
-    // Insert new recommendation
+    // No existing recommendations, insert a new recommendation
     const newRecommendation = {
       userID,
       equipment_ids: JSON.stringify(recommendationIDs),
