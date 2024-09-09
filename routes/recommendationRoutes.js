@@ -11,5 +11,7 @@ router.get('/:id', recommendationController.getRecommendation);
 // Route to delete recommendation
 router.delete('/:id', recommendationController.deleteRecommendation);
 
+//Route to generate recommendation
+router.post('/generateRecommendation', recommendationController.generateRecommendations);
 
 module.exports = router;

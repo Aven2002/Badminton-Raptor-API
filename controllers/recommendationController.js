@@ -30,3 +30,16 @@ exports.deleteRecommendation = (req, res) => {
 };
 
 
+exports.generateRecommendations = async (req, res) => {
+  try {
+    const userID = req.body.userID; 
+
+    const recommendations = await recommendationService.generateRecommendations(userID);
+
+    res.status(200).json({ message: 'Recommendations Created', recommendations });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
