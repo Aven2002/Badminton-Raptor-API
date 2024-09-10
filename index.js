@@ -10,6 +10,7 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const accountRoutes = require('./routes/accountRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const securityRoutes = require('./routes/securityRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const app = express();
 const port = 3000;
@@ -59,6 +60,7 @@ app.use('/api/favorite', favoriteRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/recommendation', recommendationRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
