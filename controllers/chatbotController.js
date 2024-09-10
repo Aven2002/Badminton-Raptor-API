@@ -19,14 +19,45 @@ exports.handleChat = async (req, res) => {
         });
     }
 
-    // Handle user choice for recommending equipment
-    if (currentState === STATES.INITIAL && userChoice === 'Recommend Equipment') {
+   // Handle user choice for recommending equipment
+   if (currentState === STATES.INITIAL && userChoice === 'Recommend Equipment') {
+    return res.json({
+        message: 'Great! I can recommend some equipment for you. Please fill in your preferences.',
+        formFields: {
+            priceRange: { min: 0, max: 2000 },
+            brands: ['YONEX', 'LI- NING', 'VICTOR'],
+            categories: ['Racquet', 'Shuttlecock', 'Footwear', 'Bags', 'Apparel', 'Accessories']
+        },
+        nextState: STATES.RECOMMEND_FORM
+    });
+}
+
+// Handle user preferences for equipment recommendations
+if (currentState === STATES.RECOMMEND_FORM) {
+    if (!priceRange || !selectedBrands || !selectedCategory) {
         return res.json({
-            message: 'Great! I can recommend some equipment for you. Please provide your preferences.',
-            options: ['Price Range', 'Preferred Brand', 'Product Category'],
-            nextState: STATES.RECOMMEND
+            message: 'Please provide all necessary preferences for recommendations.',
+            nextState: STATES.RECOMMEND_FORM
         });
     }
+
+    try {
+        // Generate equipment recommendations based on the preferences
+        const recommendations = await chatbotService.generateRecommendation(priceRange, selectedBrands, selectedCategory);
+
+        return res.json({
+            message: 'Here are some recommendations based on your preferences:',
+            equipment: recommendations,
+            nextState: STATES.INITIAL
+        });
+    } catch (error) {
+        console.error('Error generating recommendations:', error);
+        return res.json({
+            message: 'Could not generate recommendations. Please try again later.',
+            nextState: STATES.INITIAL
+        });
+    }
+}
 
     // Handle user choice for inquiring about specific equipment
     if (currentState === STATES.INITIAL && userChoice === 'Search Equipment') {
@@ -85,3 +116,28 @@ exports.handleChat = async (req, res) => {
         nextState: currentState
     });
 };
+
+
+exports.createRecommendation = async (req, res) => {
+    try {
+        const { priceRange, selectedBrands, selectedCategory } = req.body;
+        const recommendations = await chatbotService.generateChatRecommendation(priceRange, selectedBrands, selectedCategory);
+
+        if (recommendations.length === 0) {
+            return res.status(404).json({
+                message: 'No equipment meets your criteria.'
+            });
+        }
+
+        res.json({
+            message: 'Here are your recommendations:',
+            equipment: recommendations
+        });
+    } catch (error) {
+        console.error('Error in generateChatRecommendation controller:', error);
+        res.status(500).json({ message: 'Unable to generate recommendations. Please try again later.' });
+    }
+};
+
+
+

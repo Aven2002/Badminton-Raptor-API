@@ -33,41 +33,39 @@ const getEquipmentDetailsByID = async (equipmentID) => {
     }
 };
 
-/**
- * Get recommended equipment based on user preferences.
- * @param {string} category - The category of the equipment.
- * @param {string} priceRange - The price range for filtering.
- * @param {string} brand - The preferred brand.
- * @returns {Promise<Array>} - A promise that resolves to an array of recommended equipment.
- */
-async function getRecommendedEquipment(category, priceRange, brand) {
+const generateChatRecommendation = async (priceRange, selectedBrands, selectedCategory) => {
     try {
-        // Parse priceRange to get min and max prices
-        const [minPrice, maxPrice] = priceRange.split('-').map(price => parseFloat(price.trim()));
 
-        // Define the SQL query with placeholders
-        let query = `
-            SELECT * FROM equipment
-            WHERE equipCategory = ?
-              AND equipBrand LIKE ?
-              AND equipPrice BETWEEN ? AND ?
-            ORDER BY equipPrice ASC
-            LIMIT 3
-        `;
+        // Convert priceRange values to numbers if they are not already
+        const minPrice = Number(priceRange.min);
+        const maxPrice = Number(priceRange.max);
 
-        // Execute the query with the provided parameters
-        const results = await db.query(query, [category, `%${brand}%`, minPrice, maxPrice]);
+        const response = await axios.get('http://localhost:3000/api/equipment');
+        const equipment = response.data;
 
-        // Return the top 3 equipment recommendations
-        return results;
+        const filteredEquipment = equipment
+            .filter(equip => 
+                equip.equipPrice >= minPrice &&
+                equip.equipPrice <= maxPrice &&
+                (selectedBrands.length === 0 || selectedBrands.includes(equip.equipBrand)) &&
+                (selectedCategory === '' || equip.equipCategory === selectedCategory)
+            )
+            .slice(0, 3)
+            .map(equip => ({
+                equipName: equip.equipName,  
+                equipImgPath: equip.equipImgPath,
+                url: `equipment/${equip.equipID}`
+            }));
+
+        return filteredEquipment;
     } catch (error) {
-        console.error('Error fetching recommended equipment:', error);
-        throw new Error('Could not fetch recommended equipment. Please try again later.');
+        console.error('Error fetching or filtering equipment:', error);
+        throw new Error('Unable to fetch recommendations');
     }
-}
+};
 
 module.exports = {
     getEquipmentIDByName,
     getEquipmentDetailsByID,
-    getRecommendedEquipment
+    generateChatRecommendation
 };
