@@ -1,7 +1,7 @@
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
-const equipmentService = require('../routes/equipmentService'); 
+const equipmentService = require('../services/equipmentService'); 
 
 exports.getAllEquipment = (req, res) => {
   equipmentService.getAllEquipment((err, results) => {
