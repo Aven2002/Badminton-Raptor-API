@@ -215,74 +215,56 @@ const insertOrUpdateRecommendations = async (userID, recommendations, categorySc
     });
   });
 
-  const existingRecommendations = existingRecommendationsResult;
   const currentTimestamp = moment().format('YYYY-MM-DD HH:mm:ss');
 
-  if (existingRecommendations.length > 0) {
-    const existingRecommendation = existingRecommendations[0]; // Assuming only one recommendation per user
-    const existingEquipmentIDs = JSON.parse(existingRecommendation.equipment_ids).sort();
-    
-    // Compare existing equipment IDs with new ones
-    const equipmentIDsMatch = JSON.stringify(existingEquipmentIDs) === JSON.stringify(recommendationIDs);
+  if (existingRecommendationsResult.length > 0) {
+    for (const existingRecommendation of existingRecommendationsResult) {
+      const existingEquipmentIDs = JSON.parse(existingRecommendation.equipment_ids).sort();
 
-    if (equipmentIDsMatch) {
-      // Equipment IDs match, update the last_shown_at timestamp
-      await new Promise((resolve, reject) => {
-        db.query('UPDATE recommendations SET last_shown_at = ? WHERE userID = ?', 
-          [currentTimestamp, userID], 
-          (error, results) => {
-            if (error) return reject(error);
-            resolve(results);
-          });
-      });
-      
-      // Return the existing recommendationID
-      return existingRecommendation.recommendationID;
-    } else {
-      // Equipment IDs do not match, insert a new recommendation
-      const newRecommendation = {
-        userID,
-        equipment_ids: JSON.stringify(recommendationIDs),
-        rating: 0,
-        category_scores: JSON.stringify(categoryScores),
-        price_scores: JSON.stringify(priceRange),
-        feature_scores: JSON.stringify(brandScores),
-        final_scores: JSON.stringify(newFinalScores)
-      };
-      
-      const insertResult = await new Promise((resolve, reject) => {
-        db.query('INSERT INTO recommendations SET ?', [newRecommendation], (error, results) => {
-          if (error) return reject(error);
-          resolve(results);
+      // Compare existing equipment IDs with new ones using string comparison
+      const equipmentIDsMatch = JSON.stringify(existingEquipmentIDs) === JSON.stringify(recommendationIDs);
+
+      if (equipmentIDsMatch) {
+        // Equipment IDs match, update the last_shown_at timestamp only for the matched recommendation
+        await new Promise((resolve, reject) => {
+          db.query('UPDATE recommendations SET last_shown_at = ? WHERE recommendationID = ?', 
+            [currentTimestamp, existingRecommendation.recommendationID], 
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            });
         });
-      });
-      
-      // Return the newly inserted recommendationID
-      return insertResult.insertId;
+
+        // Return the existing recommendationID
+        return existingRecommendation.recommendationID;
+      }
     }
-  } else {
-    // No existing recommendations, insert a new recommendation
-    const newRecommendation = {
-      userID,
-      equipment_ids: JSON.stringify(recommendationIDs),
-      rating: 0,
-      category_scores: JSON.stringify(categoryScores),
-      price_scores: JSON.stringify(priceRange),
-      feature_scores: JSON.stringify(brandScores),
-      final_scores: JSON.stringify(newFinalScores)
-    };
-    
-    const insertResult = await new Promise((resolve, reject) => {
-      db.query('INSERT INTO recommendations SET ?', [newRecommendation], (error, results) => {
-        if (error) return reject(error);
-        resolve(results);
-      });
-    });
-    
-    // Return the newly inserted recommendationID
-    return insertResult.insertId;
   }
+
+  // If no match or no existing recommendation, insert a new recommendation
+  const newRecommendation = {
+    userID,
+    equipment_ids: JSON.stringify(recommendationIDs),
+    rating: 0,
+    category_scores: JSON.stringify(categoryScores),
+    price_scores: JSON.stringify(priceRange),
+    feature_scores: JSON.stringify(brandScores),
+    final_scores: JSON.stringify(newFinalScores),
+    last_shown_at: currentTimestamp // Set the timestamp for new recommendations
+  };
+
+  const insertResult = await new Promise((resolve, reject) => {
+    db.query('INSERT INTO recommendations SET ?', [newRecommendation], (error, results) => {
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+
+  // Return the newly inserted recommendationID
+  return insertResult.insertId;
 };
+
+
 
 const getRandomEquipment = async (limit) => {
   const query = `SELECT * FROM equipment ORDER BY RAND() LIMIT ?`;
