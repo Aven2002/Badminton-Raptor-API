@@ -75,26 +75,29 @@ const getStringAdvice = async (equipmentID, playingStyle) => {
     try {
         const equipmentResponse = await getEquipmentDetailsByID(equipmentID);
 
-        if (!equipmentResponse || !equipmentResponse.details) {
+        if (!equipmentResponse || !equipmentResponse.details || !equipmentResponse.details.stringAdvice) {
             throw new Error('Details not found in equipment response');
         }
 
-        const stringAdviceRange = equipmentResponse.details.stringAdvice.replace(' lbs', '').split('-').map(Number);
+        const stringAdvice = equipmentResponse.details.stringAdvice;
+        const stringAdviceRange = stringAdvice.replace(' lbs', '').split('-').map(Number);
         const minTension = stringAdviceRange[0];
         const maxTension = stringAdviceRange[1];
         let tensionAdvice = '';
         let category = '';
 
         // Determine tension range based on playing style
-        if (playingStyle === 'Fast attack') {
+        if (playingStyle === 'Fast attacking') {
             tensionAdvice = `Recommended tension: ${maxTension - 2} - ${maxTension} lbs`;
             category = 'Power';
-        } else if (playingStyle === 'Deceptive') {
+        } else if (playingStyle === 'Deceptive stroke') {
             tensionAdvice = `Recommended tension: ${Math.round((minTension + maxTension) / 2)} - ${Math.round((minTension + maxTension) / 2) + 2} lbs`;
             category = 'Control';
-        } else if (playingStyle === 'Defensive') {
+        } else if (playingStyle === 'Defensive straightforward') {
             tensionAdvice = `Recommended tension: ${minTension} - ${Math.round((minTension + maxTension) / 2)} lbs`;
             category = 'Durability';
+        } else {
+            throw new Error('Invalid playing style');
         }
 
         // Generate advice message
@@ -117,6 +120,7 @@ const getStringAdvice = async (equipmentID, playingStyle) => {
         throw new Error('Unable to fetch string advice');
     }
 };
+
 
 
 module.exports = {
