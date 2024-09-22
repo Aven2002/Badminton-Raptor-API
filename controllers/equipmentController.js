@@ -19,7 +19,7 @@ exports.createEquipment = (req, res) => {
   const equipment = JSON.parse(req.body.equipment);
   const details = JSON.parse(req.body.details);
   const detailTable = req.body.detailTable;
-  const equipImgPath = req.file ? `${req.file.destination.split('\\').pop()}/${req.file.filename}` : ''; // Ensure path is correct
+  const equipImgPath = req.file ? `${req.body.equipCategory}/${req.file.filename}` : '';
 
   equipmentService.createEquipment({
     ...equipment,
