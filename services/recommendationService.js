@@ -83,7 +83,7 @@ exports.generateRecommendations = async (userID) => {
     const priceRange = calculateDynamicPriceRange(medianPrice);
 
     // Step 3: Get Top Recommendations
-    const { topRecommendations, recommendations } = await getTopRecommendations(categoryScores, brandScores, priceRange, recencyScores);
+    const { topRecommendations, recommendations } = await getTopRecommendations(userID,categoryScores, brandScores, priceRange, recencyScores);
 
     // Step 4: Insert or Update Recommendations
     const recommendationID = await insertOrUpdateRecommendations(userID, topRecommendations, categoryScores, priceRange, brandScores);
@@ -153,44 +153,68 @@ const calculateScores = (userFavorites) => {
   return { categoryScores, brandScores, recencyScores };
 };
 
-const getTopRecommendations = async (categoryScores, brandScores, priceRange, recencyScores) => {
-  // Step 1: Get equipment items based on price range
-  const query = `SELECT * FROM equipment WHERE equipPrice BETWEEN ? AND ?`;
-  const equipmentItemsResult = await new Promise((resolve, reject) => {
-    db.query(query, [priceRange.min, priceRange.max], (error, results) => {
-      if (error) return reject(error);
-      resolve(results);
+const getTopRecommendations = async (userID, categoryScores, brandScores, priceRange, recencyScores) => {
+  try {
+    // Step 1: Fetch equipment items based on price range excluding favorites
+    const favoriteEquipIDs = await fetchUserFavorites(userID);
+    
+    let query = `SELECT * FROM equipment WHERE equipPrice BETWEEN ? AND ?`;
+    const params = [priceRange.min, priceRange.max];
+
+    if (favoriteEquipIDs.length > 0) {
+      const placeholders = favoriteEquipIDs.map(() => '?').join(',');
+      query += ` AND equipID NOT IN (${placeholders})`;
+      params.push(...favoriteEquipIDs); // Spread the favorite IDs into the params
+    }
+
+    // Fetch equipment items
+    const equipmentItemsResult = await new Promise((resolve, reject) => {
+      db.query(query, params, (error, results) => {
+        if (error) return reject(error);
+        resolve(results);
+      });
     });
-  });
 
-  const equipmentItems = equipmentItemsResult;
+    // Step 2: Calculate weighted recommendations
+    const weightedRecommendations = equipmentItemsResult.map(equip => {
+      const priceScore = calculatePriceScore(equip.equipPrice, priceRange);
+      const categoryScore = categoryScores[equip.equipCategory] || 0;
+      const brandScore = brandScores[equip.equipBrand] || 0;
+      const recencyScore = recencyScores[equip.equipID] || 0;
 
-  // Step 2: Calculate weighted recommendations
-  const weightedRecommendations = equipmentItems.map(equip => {
-    const priceScore = calculatePriceScore(equip.equipPrice, priceRange);
-    const categoryScore = categoryScores[equip.equipCategory] || 0;
-    const brandScore = brandScores[equip.equipBrand] || 0;
-    const recencyScore = recencyScores[equip.equipID] || 0;
+      const finalScore = (priceScore * 0.3) + (categoryScore * 0.25) + (brandScore * 0.25) + (recencyScore * 0.2);
+      return { ...equip, finalScore };
+    });
 
-    const finalScore = (priceScore * 0.3) + (categoryScore * 0.25) + (brandScore * 0.25) + (recencyScore * 0.2);
-    return { ...equip, finalScore };
-  });
+    // Step 3: Sort and select top recommendations
+    weightedRecommendations.sort((a, b) => b.finalScore - a.finalScore);
+    const topRecommendations = weightedRecommendations.slice(0, 30);
 
-  // Step 3: Sort and select top recommendations
-  weightedRecommendations.sort((a, b) => b.finalScore - a.finalScore);
-  const topRecommendations = weightedRecommendations.slice(0, 30);
+    // Step 4: Prepare the recommendations list
+    let recommendations = [...topRecommendations];
 
-  // Step 4: Prepare the recommendations list
-  let recommendations = [...topRecommendations];
+    // If fewer than 30 items are available, fetch additional random items
+    if (topRecommendations.length < 30) {
+      const additionalItemsNeeded = 30 - topRecommendations.length;
+      const randomEquipment = await getRandomEquipment(additionalItemsNeeded);
+      recommendations = [...topRecommendations, ...randomEquipment];
+    }
 
-  // If fewer than 30 items are available, fetch additional random items
-  if (topRecommendations.length < 30) {
-    const additionalItemsNeeded = 30 - topRecommendations.length;
-    const randomEquipment = await getRandomEquipment(additionalItemsNeeded);
-    recommendations = [...topRecommendations, ...randomEquipment];
+    return { topRecommendations, recommendations };
+    
+  } catch (error) {
+    console.error('Error fetching top recommendations:', error);
+    throw new Error('Internal Server Error.');
   }
+};
 
-  return { topRecommendations, recommendations };
+const fetchUserFavorites = async (userID) => {
+  const response = await fetch(`http://localhost:3000/api/favorite/${userID}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch favorites');
+  }
+  const favorites = await response.json();
+  return favorites.map(item => item.equipID); // Return only the equipIDs
 };
 
 
