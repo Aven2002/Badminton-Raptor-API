@@ -11,13 +11,4 @@ router.post('/chat', async (req, res, next) => {
   }
 });
 
-// Route to generate recommendation
-router.post('/recommendation', async (req, res, next) => {
-  try {
-    await chatbotController.createRecommendation(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
-
 module.exports = router;
